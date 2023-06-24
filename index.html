@@ -120,6 +120,8 @@
       <br>
       <br>
       press enter to return to list editor
+      <br>
+      <button onclick="switch_to('list_editor')"> return to list editor </button>
 
     </div>
   </div>
@@ -307,12 +309,64 @@
         }
       }
 
-      document.onkeypress = function(evt) {
+      // Register an event listener, seriously...
+
+
+      function ontouch(evt) {
+
+        if (is_shown("flasher")) {
+          console.log(evt);
+          if ( is_shown("flasher_focus")) {
+              flash_next();
+          }
+          else if (is_shown("flasher_typing")) {
+            document.getElementById("flasher_typing_input").focus();
+
+            setTimeout(function() {
+            document.getElementById("flasher_typing_input").focus();
+            }, 0);
+            setTimeout(function() {
+            document.getElementById("flasher_typing_input").focus();
+            }, 1000);
+          }
+          else if (is_shown("flasher_right") ) {
+              flash_next()
+          }
+          else if (is_shown("flasher_wrong")) {
+            switch_to("flasher_focus");
+          }
+        } else if ( is_shown("result")) {
+          // switch_to("list_editor");
+        }
+      }
+
+      window.onfocus = function (evt) {
+        if (is_shown("flasher")) {
+          console.log(evt);
+          if ( is_shown("flasher_focus")) {
+          }
+          else if (is_shown("flasher_typing")) {
+            setTimeout(function() {
+            document.getElementById("flasher_typing_input").focus();
+            }, 1000);
+          }
+          else if (is_shown("flasher_right") ) {
+          }
+          else if (is_shown("flasher_wrong")) {
+          }
+        }
+      }
+
+      //window.addEventListener("click", ontouch, true);
+      window.addEventListener("touchstart", ontouch, true);
+
+      document.onkeydown = function(evt) {
+        console.log(evt);
         if (is_shown("flasher")) {
 
           if ( is_shown("flasher_focus")) {
 
-            if (evt.code=="Enter") {
+            if (evt.key=="Enter") {
 
               flash_next();
 
@@ -321,7 +375,7 @@
 
 
           else if (is_shown("flasher_typing")) {
-            if (evt.code=="Enter") {
+            if (evt.key=="Enter") {
               evt.preventDefault();
 
               console.log(document.getElementById("flasher_typing_input"))
@@ -351,19 +405,20 @@
           }
 
           else if (is_shown("flasher_right") ) {
-            if (evt.code=="Enter") {
+            if (evt.key=="Enter") {
               flash_next()
             }
           }
           else if (is_shown("flasher_wrong")) {
-            if (evt.code=="Enter") {
+            if (evt.key=="Enter") {
             switch_to("flasher_focus");
             }
           }
 
         } else if ( is_shown("result")) {
-          switch_to("list_editor");
-
+          if (evt.key=="Enter") {
+            switch_to("list_editor");
+          }
         }
       }
 
