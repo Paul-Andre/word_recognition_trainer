@@ -21,7 +21,7 @@
       <form name="input_form" id="input_form" onsubmit="return false;">
         <div>
           <label for="word_list">List to flash:</label><br/>
-          <textarea type="textarea" name="word_list" id="word_list" required></textarea>
+          <textarea type="textarea" name="word_list" id="word_list" autocapitalize="none" required></textarea>
         </div>
 
         <div>
@@ -70,7 +70,13 @@
         <div class="display_content" id="flasher_typing">
           <div class="central_box">
             <div class="flashed_word" contenteditable="true"
-                   type="text" id="flasher_typing_input" name="flasher_typing_input" >
+                   type="text" id="flasher_typing_input"
+                   name="flasher_typing_input"
+
+autocorrect="off" autocapitalize="none" autocomplete="off"
+
+                   >
+
             </div>
           </div>
         </div>
@@ -209,6 +215,13 @@
           }
         }
       }
+
+      document.querySelector("#flasher_typing .central_box")
+        .addEventListener("click", function() {
+            document.getElementById("flasher_typing_input").focus();
+        }, true);
+
+
       window.onbeforeunload = save_form_to_storage;
       load_data_from_storage();
 
@@ -322,9 +335,6 @@
           else if (is_shown("flasher_typing")) {
             document.getElementById("flasher_typing_input").focus();
 
-            setTimeout(function() {
-            document.getElementById("flasher_typing_input").focus();
-            }, 0);
             setTimeout(function() {
             document.getElementById("flasher_typing_input").focus();
             }, 1000);
