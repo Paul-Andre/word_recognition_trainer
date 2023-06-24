@@ -1,0 +1,145 @@
+* {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body, html {
+  height: 100%;
+  margin: 0px;
+
+}
+
+/* http://motherfuckingwebsite.com/ */
+body {
+  line-height:1.6;
+  font-size:18px;
+  color:#222;
+}
+
+.page {
+  margin:40px auto;
+  max-width:650px;
+  padding:0 10px
+}
+
+
+h1,h2,h3{line-height:1.2}
+
+/* Creating a system where a certain box can have multiple alternating things inside it */
+/* Probably stupid and unnecessary */
+.display_container {
+  position: relative;
+  height: 100%;
+  width: 100%;
+}
+
+.display_content {
+  display: none;
+  position: absolute;
+  left: 0;
+  right: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.display_content.shown {
+  display: block;
+}
+
+
+textarea {
+  width: 650px;
+  height: 300px;
+}
+
+#flasher {
+  height: 100vh;
+  background-color: #ddd;
+  width: 100%;
+}
+
+.central_box {
+  background-color: white;
+  width: 500px;
+
+  height: 200px;
+  padding: 10px;
+  line-height: 180px; /* 200-2*10 */
+
+
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    position: relative;
+    text-align: center;
+
+
+}
+
+.focus_here_text {
+  display: inline-block;
+  vertical-align: middle;
+  color: #666;
+
+
+  /* line-height: 1.5; */
+}
+
+.central_box div {
+  line-height: 1.5;
+}
+
+.flashed_word {
+  display: inline-block;
+  vertical-align: middle;
+
+  font-size: 40px;
+  line-height: 1.5;
+
+}
+.flashed_word[contenteditable] {
+  outline: 0px solid transparent;
+}
+
+
+.correct_box {
+  background: #008800;
+  color: white;
+  font-size: 20px;
+
+  padding: 4px 10px;
+
+}
+
+.central_box_diff {
+  background-color: white;
+  width: 500px;
+
+  height: 200px;
+
+
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    position: relative;
+    padding: 10px;
+
+}
+
+#you_typed_span,#flashed_span {
+  font-size: 40px;
+}
+
+
+#you_typed_span {
+  background-color: #ffeeee;
+}
+
+#flashed_span {
+  background-color: #eeffee;
+}
+
+

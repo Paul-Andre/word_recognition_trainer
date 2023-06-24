@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Word Recognition Trainer</title>
+    <link rel="stylesheet" href="style.css">
+  </head>
+  <body>
+	<!-- <script src="index.js"></script> -->
+  </body>
+</html>
+
+
+<body>
+  <div class="display_container">
+
+    <div class="display_content page shown" id="list_editor">
+      
+      <form name="input_form" id="input_form" onsubmit="return false;">
+        <div>
+          <label for="word_list">List to flash:</label><br/>
+          <textarea type="textarea" name="word_list" id="word_list" required></textarea>
+        </div>
+
+        <div>
+          <label for="flash_time"> flash time in ms: </label>
+          <input name="flash_time" id="flash_time" type="number" value="50">
+        </div>
+
+        <div>
+
+              <input name="flash_in_order" id="flash_in_order" type="checkbox" >
+              <label for="flash_in_order">Flash in order</label>
+        </div>
+        <div>
+
+              <input name="split_phrases" id="split_phrases" type="checkbox" >
+              <label for="split_phrases">Flash phrases word by word</label>
+
+        </div>
+
+
+        <button onclick="process()" type="button">Flash</button>
+
+      </form>
+    </div>
+
+    <div class="display_content" id="flasher">
+
+      <div class="display_container" >
+
+        <div class="display_content shown" id="flasher_focus">
+          <div class="central_box">
+            <div class="focus_here_text">
+            Focus here and press enter
+            </div>
+          </div>
+        </div>
+
+        <div class="display_content" id="flasher_flash">
+          <div class="central_box">
+            <div class="flashed_word" id="flasher_flashed_word">
+              bread
+            </div>
+          </div>
+        </div>
+
+        <div class="display_content" id="flasher_typing">
+          <div class="central_box">
+            <div class="flashed_word" contenteditable="true"
+                   type="text" id="flasher_typing_input" name="flasher_typing_input" >
+            </div>
+          </div>
+        </div>
+
+        <div class="display_content" id="flasher_right">
+          <div class="central_box">
+            <div class="flashed_word" id="flasher_right_word">
+              Google
+            </div>
+            <div>
+            <span class="correct_box">
+              CORRECT
+            </span>
+            </div>
+            <div style="text-align: middle">
+            <br>
+              Press enter to continue
+            </div>
+          </div>
+        </div>
+
+        <div class="display_content" id="flasher_wrong">
+          <div class="central_box_diff">
+            <p>
+            <p>
+          Was flashed: <span id="flashed_span"> Google </span>
+            </p>
+          You typed: <span id="you_typed_span"> GGGGGG </span>
+            </p>
+
+            <div style="text-align: middle">
+              Press enter to continue
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <div class="display_content page" id="result">
+      Hooray you are done.
+      <br>
+      Successful words: <span id="result_successful_words"> words, words, words </span>
+      <br>
+      Missed words: <span id="result_missed_words"> words, words, words </span>
+      <br>
+      <br>
+      press enter to return to list editor
+
+    </div>
+  </div>
+
+    <script>
+
+      function switch_to(id) {
+        let to;
+        if ((typeof id) == "string") {
+          to = document.getElementById(id); 
+        } else {
+          to = id;
+        }
+        let parent = to.parentElement;
+        for (let child of parent.children) {
+          //let child = parent.children[i];
+          child.classList.remove("shown")
+        }
+        to.classList.add("shown");
+      }
+
+      function is_shown(id) {
+        let to;
+        if ((typeof id) == "string") {
+          to = document.getElementById(id); 
+        } else {
+          to = id;
+        }
+        return to.classList.contains("shown");
+      }
+
+      /* Randomize array in-place using Durstenfeld shuffle algorithm */
+      /* https://stackoverflow.com/a/12646864/2356347 */
+      function shuffleArray(array) {
+        for (var i = array.length - 1; i > 0; i--) {
+          var j = Math.floor(Math.random() * (i + 1));
+          var temp = array[i];
+          array[i] = array[j];
+          array[j] = temp;
+        }
+      }
+
+      function get_form_data() {
+        let form = document.getElementById("input_form");
+        let formData = new FormData(form);
+
+        let a = {}
+        for (const [key, value] of formData) {
+          a[key] = value;
+        }
+        a.flash_in_order = !!(a.flash_in_order);
+        a.split_phrases = !!(a.split_phrases);
+
+        return a;
+      }
+
+      function save_form_to_storage() {
+        a = get_form_data();
+
+        let json = JSON.stringify(a)
+        localStorage.setItem("input_form", json);
+      }
+
+      function load_data_from_storage() {
+
+        // Load edited form from localstorage
+        let saved_form = localStorage.getItem("input_form");
+        if (saved_form) {
+          saved_form = JSON.parse(saved_form);
+          for (let name in saved_form) {
+            console.log(name);
+            let value = saved_form[name];
+            console.log(value);
+            // check if there's a better way
+
+            let form = document.forms["input_form"];
+            let element = form.elements[name];
+            if (element.type == "checkbox") {
+              element.checked = value;
+
+            } else {
+              element.value = value;
+            }
+
+          }
+        }
+      }
+      window.onbeforeunload = save_form_to_storage;
+      load_data_from_storage();
+
+      function process() {
+        let form = document.getElementById("input_form");
+        let formData = new FormData(form);
+
+        console.log(formData);
+
+        a = get_form_data();
+        console.log(a)
+
+        recognition_list = a.word_list.split('\n')
+        .map(
+          (p) => p.trim()
+        )
+        .filter(
+          (p) => p!=""
+          )
+        .map(
+          (p) => {
+            if (a.split_phrases) {
+              return p.split(" ").filter((w) => w!="");
+            }else {
+              return [p]
+            }
+          })
+        ;
+
+
+
+        if (!a.flash_in_order) {
+          shuffleArray(recognition_list);
+        }
+
+        console.log(recognition_list);
+
+        recognition_i = 0;
+        flash_timeout = a.flash_time;
+        successful_phrases = []
+        missed_phrases = []
+
+        switch_to("flasher");
+        switch_to("flasher_focus");
+
+      }
+
+      let flash_timeout = 30;
+      let phrase_flashed = ["asdf"];
+
+      let recognition_list = [];
+      let recognition_i = 0;
+
+      let successful_phrases = []
+      let missed_phrases = []
+
+
+      function flash_phrase(word_array, is_entry=true) {
+        console.assert(is_shown("flasher"))
+
+        if (is_entry) {
+          phrase_flashed = word_array;
+        }
+
+        let [first, ...rest] = word_array;
+
+        document.getElementById("flasher_flashed_word").innerText = first;
+
+        switch_to("flasher_flash");
+
+        setTimeout(function() {
+          if (rest.length > 0) {
+            flash_phrase(rest, false);
+          } else {
+            document.getElementById("flasher_typing_input").innerText = "";
+            switch_to("flasher_typing");
+            document.getElementById("flasher_typing_input").focus();
+          }
+
+        }, flash_timeout);
+
+      }
+
+      function flash_next() {
+        if (recognition_i < recognition_list.length) {
+          let words_to_flash = recognition_list[recognition_i];
+          recognition_i++;
+          flash_phrase (words_to_flash);
+        } else {
+          document.getElementById("result_successful_words").innerText = 
+            successful_phrases.map((a) => a.join(" ")).join(", ");
+
+          document.getElementById("result_missed_words").innerText = 
+            missed_phrases.map((a) => a.join(" ")).join(", ");
+
+          switch_to("result")
+
+        }
+      }
+
+      document.onkeypress = function(evt) {
+        if (is_shown("flasher")) {
+
+          if ( is_shown("flasher_focus")) {
+
+            if (evt.code=="Enter") {
+
+              flash_next();
+
+            }
+          }
+
+
+          else if (is_shown("flasher_typing")) {
+            if (evt.code=="Enter") {
+              evt.preventDefault();
+
+              console.log(document.getElementById("flasher_typing_input"))
+              var typed_word = document.getElementById("flasher_typing_input").innerText;
+
+              var flashed_word = phrase_flashed.join(" ")
+
+
+              if (typed_word == flashed_word) {
+                successful_phrases.push(phrase_flashed);
+
+
+                document.getElementById("flasher_right_word").innerText = flashed_word;
+                switch_to("flasher_right")
+
+              } else {
+                missed_phrases.push(phrase_flashed);
+
+                document.getElementById("you_typed_span").innerText = typed_word;
+                document.getElementById("flashed_span").innerText = flashed_word;
+                switch_to("flasher_wrong")
+
+
+              }
+              
+            }
+          }
+
+          else if (is_shown("flasher_right") ) {
+            if (evt.code=="Enter") {
+              flash_next()
+            }
+          }
+          else if (is_shown("flasher_wrong")) {
+            if (evt.code=="Enter") {
+            switch_to("flasher_focus");
+            }
+          }
+
+        } else if ( is_shown("result")) {
+          switch_to("list_editor");
+
+        }
+      }
+
+
+    </script>
+
+</body>
+
