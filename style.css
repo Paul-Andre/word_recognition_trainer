@@ -142,4 +142,9 @@ textarea {
   background-color: #eeffee;
 }
 
+.displayed_list {
+  margin-left: 3em;
+  line-height: 1.2;
+}
+
 

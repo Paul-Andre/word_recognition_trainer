@@ -29,18 +29,31 @@
           <input name="flash_time" id="flash_time" type="number" value="50">
         </div>
 
+<fieldset>
+    <legend>Mode:</legend>
+
+    <div>
+      <input type="radio" id="line_as_one" name="phrase_mode" value="line_as_one"
+             checked>
+      <label for="line_as_one">Flash each line as one</label>
+    </div>
+
+    <div>
+      <input type="radio" id="word_by_word" name="phrase_mode" value="word_by_word">
+      <label for="word_by_word">Flash each line word by word</label>
+    </div>
+
+    <div>
+      <input type="radio" id="flash_words_individually" name="phrase_mode" value="words_individually">
+      <label for="words_individually">Flash each word individually</label>
+    </div>
+</fieldset>
+
         <div>
 
               <input name="flash_in_order" id="flash_in_order" type="checkbox" >
               <label for="flash_in_order">Flash in order</label>
         </div>
-        <div>
-
-              <input name="split_phrases" id="split_phrases" type="checkbox" >
-              <label for="split_phrases">Flash phrases word by word</label>
-
-        </div>
-
 
         <button onclick="process()" type="button">Flash</button>
 
@@ -73,7 +86,7 @@
                    type="text" id="flasher_typing_input"
                    name="flasher_typing_input"
 
-autocorrect="off" autocapitalize="none" autocomplete="off"
+autocorrect="off" autocapitalize="none" autocomplete="off" spellcheck="false"
 
                    >
 
@@ -120,14 +133,15 @@ autocorrect="off" autocapitalize="none" autocomplete="off"
     <div class="display_content page" id="result">
       Hooray you are done.
       <br>
-      Successful words: <span id="result_successful_words"> words, words, words </span>
-      <br>
-      Missed words: <span id="result_missed_words"> words, words, words </span>
-      <br>
-      <br>
-      press enter to return to list editor
-      <br>
       <button onclick="switch_to('list_editor')"> return to list editor </button>
+      <br>
+      <br>
+      Successful words:
+      <div class="displayed_list" id="result_successful_words"> words, words, words </div>
+      <br>
+      Missed words:
+      <div class="displayed_list" id="result_missed_words"> words, words, words </div>
+      <br>
 
     </div>
   </div>
@@ -179,7 +193,7 @@ autocorrect="off" autocapitalize="none" autocomplete="off"
           a[key] = value;
         }
         a.flash_in_order = !!(a.flash_in_order);
-        a.split_phrases = !!(a.split_phrases);
+        //a.split_phrases = !!(a.split_phrases);
 
         return a;
       }
@@ -227,29 +241,45 @@ autocorrect="off" autocapitalize="none" autocomplete="off"
 
       function process() {
         let form = document.getElementById("input_form");
-        let formData = new FormData(form);
-
-        console.log(formData);
 
         a = get_form_data();
         console.log(a)
 
-        recognition_list = a.word_list.split('\n')
+        recognition_list = a.word_list.split('\n') 
         .map(
           (p) => p.trim()
         )
         .filter(
           (p) => p!=""
           )
-        .map(
-          (p) => {
-            if (a.split_phrases) {
-              return p.split(" ").filter((w) => w!="");
-            }else {
-              return [p]
-            }
-          })
         ;
+
+        if (a.phrase_mode == "words_individually") {
+
+          recognition_list = recognition_list
+            .map(
+              (p) => {
+                  return p.split(" ").filter((w) => w!="");
+              })
+          .flat(1)
+          .map(
+            (w) => [w]
+            )
+          ;
+
+        } else {
+
+          recognition_list = recognition_list
+            .map(
+              (p) => {
+                if (a.phrase_mode == "word_by_word") {
+                  return p.split(" ").filter((w) => w!="");
+                }else {
+                  return [p]
+                }
+              })
+
+        }
 
 
 
@@ -312,17 +342,15 @@ autocorrect="off" autocapitalize="none" autocomplete="off"
           flash_phrase (words_to_flash);
         } else {
           document.getElementById("result_successful_words").innerText = 
-            successful_phrases.map((a) => a.join(" ")).join(", ");
+            successful_phrases.map((a) => a.join(" ")).join("\n");
 
           document.getElementById("result_missed_words").innerText = 
-            missed_phrases.map((a) => a.join(" ")).join(", ");
+            missed_phrases.map((a) => a.join(" ")).join("\n");
 
           switch_to("result")
 
         }
       }
-
-      // Register an event listener, seriously...
 
 
       function ontouch(evt) {
@@ -426,9 +454,7 @@ autocorrect="off" autocapitalize="none" autocomplete="off"
           }
 
         } else if ( is_shown("result")) {
-          if (evt.key=="Enter") {
-            switch_to("list_editor");
-          }
+
         }
       }
 
