@@ -63,11 +63,12 @@ textarea {
 
 .central_box {
   background-color: white;
-  width: 500px;
+  width: 700px;
 
-  height: 200px;
+  height: 400px;
   padding: 10px;
-  line-height: 180px; /* 200-2*10 */
+
+  line-height: 380px; /* 400-2*10 */
 
 
     top: 50%;
@@ -96,7 +97,10 @@ textarea {
   display: inline-block;
   vertical-align: middle;
 
-  font-size: 40px;
+  font-family: Arial, sans-serif;
+  font-weight: 700;
+
+  font-size: 60px;
   line-height: 1.5;
 
 }
@@ -116,9 +120,9 @@ textarea {
 
 .central_box_diff {
   background-color: white;
-  width: 500px;
+  width: 700px;
 
-  height: 200px;
+  height: 400px;
 
 
     top: 50%;

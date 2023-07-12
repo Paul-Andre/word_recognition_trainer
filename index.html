@@ -321,18 +321,21 @@ autocorrect="off" autocapitalize="none" autocomplete="off" spellcheck="false"
         document.getElementById("flasher_flashed_word").innerText = first;
 
         switch_to("flasher_flash");
+        document.getElementById("flasher_flashed_word").style.opacity = "0";
 
         setTimeout(function() {
-          if (rest.length > 0) {
-            flash_phrase(rest, false);
-          } else {
-            document.getElementById("flasher_typing_input").innerText = "";
-            switch_to("flasher_typing");
-            document.getElementById("flasher_typing_input").focus();
-          }
+          document.getElementById("flasher_flashed_word").style.opacity = "1";
+          setTimeout(function() {
+            if (rest.length > 0) {
+              flash_phrase(rest, false);
+            } else {
+              document.getElementById("flasher_typing_input").innerText = "";
+              switch_to("flasher_typing");
+              document.getElementById("flasher_typing_input").focus();
+            }
 
-        }, flash_timeout);
-
+          }, flash_timeout);
+        }, 130);
       }
 
       function flash_next() {
