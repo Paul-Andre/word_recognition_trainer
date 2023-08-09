@@ -151,4 +151,15 @@ textarea {
   line-height: 1.2;
 }
 
+#progress_indicator {
+  position: absolute;
+  bottom: 0;
+  font-size: 0.8em;
+  margin-left: 0.5em;
+
+}
+
+#missed_words_copied {
+  font-size: 0.8em;
+}
 

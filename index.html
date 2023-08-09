@@ -25,8 +25,20 @@
         </div>
 
         <div>
-          <label for="flash_time"> flash time in ms: </label>
+          <label for="flash_time"> flash duration in ms: </label>
           <input name="flash_time" id="flash_time" type="number" value="50">
+        </div>
+        <div>
+          <label for="before_time"> time before flash in ms: </label>
+          <input name="before_time" id="before_time" type="number" value="130">
+        </div>
+        <div>
+          <label for="between_time"> time between flashes in ms: </label>
+          <input name="between_time" id="between_time" type="number" value="100">
+        </div>
+        <div>
+          <label for="nb_chances"> number of extra chances </label>
+          <input name="nb_chances" id="nb_chances" type="number" value="1">
         </div>
 
 <fieldset>
@@ -58,6 +70,9 @@
         <button onclick="process()" type="button">Flash</button>
 
       </form>
+      <button onclick="continue_last_session()" type="button">Continue last session (
+        <span id="continue_last_session_label"> </span> )
+      </button>
     </div>
 
     <div class="display_content" id="flasher">
@@ -128,6 +143,16 @@ autocorrect="off" autocapitalize="none" autocomplete="off" spellcheck="false"
 
       </div>
 
+    <div id="progress_indicator">
+      <span id=progress_indicator_correct> 12 </span>
+      /
+      <span id="progress_indicator_done">13 </span>
+      /
+      <span id="progress_indicator_total"> 123</span>
+      &nbsp;
+      <span id="progress_indicator_percent"> 17</span> %
+    </div>
+
     </div>
 
     <div class="display_content page" id="result">
@@ -139,7 +164,7 @@ autocorrect="off" autocapitalize="none" autocomplete="off" spellcheck="false"
       Successful words:
       <div class="displayed_list" id="result_successful_words"> words, words, words </div>
       <br>
-      Missed words:
+      Missed words: <button onclick="copy_missed_words();"> copy </button> <span id="missed_words_copied" >(Copied!)</span>
       <div class="displayed_list" id="result_missed_words"> words, words, words </div>
       <br>
 
@@ -205,7 +230,28 @@ autocorrect="off" autocapitalize="none" autocomplete="off" spellcheck="false"
         localStorage.setItem("input_form", json);
       }
 
-      function load_data_from_storage() {
+      function save_session_to_storage() {
+        let a = {
+          flash_time,
+          between_time,
+          before_time,
+          remaining_chances,
+
+          recognition_list,
+          recognition_list_i,
+
+          successful_phrases,
+          missed_phrases,
+
+          current_form_data,
+          current_identifier,
+        };
+
+        let json = JSON.stringify(a)
+        localStorage.setItem("last_session", json);
+      }
+
+      function load_form_from_storage() {
 
         // Load edited form from localstorage
         let saved_form = localStorage.getItem("input_form");
@@ -230,14 +276,66 @@ autocorrect="off" autocapitalize="none" autocomplete="off" spellcheck="false"
         }
       }
 
+      function start_session_from_object(a) {
+        ({
+          flash_time,
+          between_time,
+          before_time,
+          remaining_chances,
+
+          recognition_list,
+          recognition_list_i,
+
+          successful_phrases,
+          missed_phrases,
+
+          current_form_data,
+          current_identifier,
+        } = a);
+
+        update_progress_indicator();
+        switch_to("flasher");
+        switch_to("flasher_focus");
+      }
+
+
       document.querySelector("#flasher_typing .central_box")
         .addEventListener("click", function() {
             document.getElementById("flasher_typing_input").focus();
         }, true);
 
 
-      window.onbeforeunload = save_form_to_storage;
-      load_data_from_storage();
+      window.onbeforeunload = function() {
+        save_form_to_storage();
+
+        /*
+          // I removed this from here because I instead do it every time a word is done during flashing
+        if (is_shown("flasher")) {
+          save_session_to_storage();
+        }
+        */
+      };
+
+      load_form_from_storage();
+
+      let last_session = localStorage.getItem("last_session");
+      if (last_session) {
+        last_session = JSON.parse(last_session);
+        document.getElementById("continue_last_session_label").innerText = (
+          last_session.recognition_list_i + "/" + last_session.recognition_list.length
+          );
+      }
+
+      function continue_last_session(){
+        if (last_session) {
+          start_session_from_object(last_session);
+        }
+      }
+
+
+      function generate_identifier() {
+        return Date.now();
+      }
 
       function process() {
         let form = document.getElementById("input_form");
@@ -289,31 +387,71 @@ autocorrect="off" autocapitalize="none" autocomplete="off" spellcheck="false"
 
         console.log(recognition_list);
 
-        recognition_i = 0;
-        flash_timeout = a.flash_time;
+        flash_time = a.flash_time;
+        before_time = a.before_time;
+        between_time = a.between_time;
+        remaining_chances = a.nb_chances;
+
         successful_phrases = []
         missed_phrases = []
+        recognition_list_i = 0;
 
+        current_form_data = a;
+        current_identifier = generate_identifier();
+
+        update_progress_indicator();
         switch_to("flasher");
         switch_to("flasher_focus");
 
       }
 
-      let flash_timeout = 30;
-      let phrase_flashed = ["asdf"];
+      let flash_time = 30;
+      let between_time = 100;
+      let before_time = 130;
+
+      let remaining_chances = 0;
 
       let recognition_list = [];
-      let recognition_i = 0;
+      let recognition_list_i = 0;
 
       let successful_phrases = []
       let missed_phrases = []
 
+      let current_form_data = null;
+      let current_identifier = null;
+
+      let phrase_flashed = ["asdf"];
+
+
+      let session = {};
+
+
+      function create_past_session_button(past_session) {
+
+      }
+
+
+      function update_progress_indicator() {
+
+        document.getElementById("progress_indicator_correct").innerText = successful_phrases.length;
+        document.getElementById("progress_indicator_done").innerText = recognition_list_i;
+        document.getElementById("progress_indicator_total").innerText = recognition_list.length;
+        document.getElementById("progress_indicator_percent").innerText =
+          (recognition_list_i / recognition_list.length * 100).toFixed(2);
+      }
 
       function flash_phrase(word_array, is_entry=true) {
         console.assert(is_shown("flasher"))
 
         if (is_entry) {
           phrase_flashed = word_array;
+        }
+
+        let buffer;
+        if (is_entry) {
+          buffer=before_time;
+        }else{
+          buffer=between_time;
         }
 
         let [first, ...rest] = word_array;
@@ -334,25 +472,49 @@ autocorrect="off" autocapitalize="none" autocomplete="off" spellcheck="false"
               document.getElementById("flasher_typing_input").focus();
             }
 
-          }, flash_timeout);
-        }, 130);
+          }, flash_time);
+        }, buffer);
       }
 
       function flash_next() {
-        if (recognition_i < recognition_list.length) {
-          let words_to_flash = recognition_list[recognition_i];
-          recognition_i++;
+        if (recognition_list_i < recognition_list.length) {
+          let words_to_flash = recognition_list[recognition_list_i];
           flash_phrase (words_to_flash);
         } else {
-          document.getElementById("result_successful_words").innerText = 
-            successful_phrases.map((a) => a.join(" ")).join("\n");
 
-          document.getElementById("result_missed_words").innerText = 
-            missed_phrases.map((a) => a.join(" ")).join("\n");
+          if (remaining_chances >= 1) {
 
-          switch_to("result")
+            remaining_chances-=1;
+            recognition_list = missed_phrases;
+            if (!current_form_data.flash_in_order) {
+              shuffleArray(recognition_list);
+            }
+            missed_phrases = [];
+            recognition_list_i = 0;
+            flash_next();
 
+          }else {
+
+            document.getElementById("result_successful_words").innerText = 
+              successful_phrases.map((a) => a.join(" ")).join("\n");
+
+            document.getElementById("result_missed_words").innerText = 
+              missed_phrases.map((a) => a.join(" ")).join("\n");
+
+            document.getElementById("missed_words_copied").style.display="none";
+
+            switch_to("result")
+
+          }
         }
+      }
+
+      async function copy_missed_words() {
+
+        let to_copy = missed_phrases.map((a) => a.join(" ")).join("\n") + "\n";
+        await navigator.clipboard.writeText(to_copy);
+        document.getElementById("missed_words_copied").style.display="";
+
       }
 
 
@@ -424,10 +586,15 @@ autocorrect="off" autocapitalize="none" autocomplete="off" spellcheck="false"
 
               var flashed_word = phrase_flashed.join(" ")
 
+              recognition_list_i++;
+              update_progress_indicator();
+
+              setTimeout(function() {
+                save_session_to_storage();
+              }, 0);
 
               if (typed_word == flashed_word) {
                 successful_phrases.push(phrase_flashed);
-
 
                 document.getElementById("flasher_right_word").innerText = flashed_word;
                 switch_to("flasher_right")
@@ -438,7 +605,6 @@ autocorrect="off" autocapitalize="none" autocomplete="off" spellcheck="false"
                 document.getElementById("you_typed_span").innerText = typed_word;
                 document.getElementById("flashed_span").innerText = flashed_word;
                 switch_to("flasher_wrong")
-
 
               }
               
