@@ -163,3 +163,10 @@ textarea {
   font-size: 0.8em;
 }
 
+.session_card {
+  background: lightgrey;
+  margin-top: 4px;
+  margin-bottom: 4px;
+  padding: 4px;
+}
+
