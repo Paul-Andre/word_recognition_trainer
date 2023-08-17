@@ -334,39 +334,57 @@ autocorrect="off" autocapitalize="none" autocomplete="off" spellcheck="false"
           return t.content;
       }
 
+
+      function hash_code(str) { // java String#hashCode
+          var hash = 0;
+          for (var i = 0; i < str.length; i++) {
+             hash = str.charCodeAt(i) + ((hash << 5) - hash);
+          }
+          return hash;
+      } 
+
+      function int_to_rgb(i){
+          var c = (i & 0x00FFFFFF)
+              .toString(16)
+              .toUpperCase();
+
+          return "#" + ("00000".substring(0, 6 - c.length) + c);
+      }
+
+      function color_hash(str) {
+        return int_to_rgb(hash_code(str));
+      }
+
       function create_session_continue_button(session) {
-
-
         let a = document.getElementById("session_card_template").content.cloneNode(true)
 
-        console.log(a);
-
         a.querySelector(".session_identifier").innerText = session.current_identifier;
+        a.querySelector(".session_identifier").style.color = color_hash(""+session.current_identifier);
         a.querySelector(".session_title").innerText = session.current_form_data.title;
         a.querySelector(".progress_display").innerText = (session.recognition_list_i + "/" + session.recognition_list.length);
 
         a.querySelector(".continue").onclick = function() {
           start_session_from_object(session);
-          console.log('clikced lol');
         };
         let card = a.querySelector(".session_card")
         a.querySelector(".delete").onclick = function() {
-          card.remove();
-          localStorage.removeItem("session_" + session.current_identifier);
+          let confirmation_message = `Do you really want to delete session "${session.current_form_data.title}?"`
+          if (confirm(confirmation_message)) {
+            card.remove();
+            localStorage.removeItem("session_" + session.current_identifier);
+          }
         };
         a.querySelector(".load_form").onclick = function() {
           let form = document.forms["input_form"];
           load_data_into_form(session.current_form_data, form);
         };
 
-        console.log(a);
         return a;
       }
 
 
       load_form_from_storage();
 
-      //localStorage.dd
 
       let previous_sessions = [];
 
@@ -391,7 +409,10 @@ autocorrect="off" autocapitalize="none" autocomplete="off" spellcheck="false"
 
         }
       }
-      load_previous_sessions();
+
+      setTimeout(function() {
+        load_previous_sessions();
+      }, 0);
 
 
       function generate_identifier() {
@@ -465,6 +486,10 @@ autocorrect="off" autocapitalize="none" autocomplete="off" spellcheck="false"
         update_progress_indicator();
         switch_to("flasher");
         switch_to("flasher_focus");
+
+        setTimeout(function() {
+          save_session_to_storage();
+        }, 0);
 
       }
 
